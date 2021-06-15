@@ -2,6 +2,7 @@ package com.moradyar.anroid.exoplayerexample
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import androidx.annotation.RawRes
 import androidx.appcompat.app.AppCompatActivity
 import com.moradyar.anroid.exoplayerexample.databinding.ActivityMainBinding
 import com.moradyar.anroid.player.common.Playable
@@ -9,31 +10,39 @@ import com.moradyar.anroid.player.common.Playable
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val playableList = arrayOf(
-        Playable(
-            uri = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
-            title = "First"
-        ),
-        Playable(
-            uri = "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
-            title = "Second"
-        ),
-        Playable(
-            uri = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
-            title = "Third"
-        ),
-        Playable(
-            uri = "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
-            title = "Forth"
+    private val playableList by lazy {
+        arrayOf(
+            Playable(
+                uri = getContentUri(R.raw.vid1),
+                title = "First"
+            ),
+            Playable(
+                uri = getContentUri(R.raw.vid2),
+                title = "Second"
+            )
         )
-    )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
         setContentView(binding.root)
-        binding.btnShowStory.setOnClickListener {
-            StoryDialog(playableList).show(supportFragmentManager, "TAG")
+        binding.btnShowStoryStandard.setOnClickListener {
+            StoryDialogStandard(playableList).show(
+                supportFragmentManager,
+                STANDARD_STORY_DIALOG_TAG
+            )
         }
+        binding.btnShowStoryExo.setOnClickListener {
+            StoryDialogExo(playableList).show(supportFragmentManager, EXO_STORY_DIALOG_TAG)
+        }
+    }
+
+    private fun getContentUri(@RawRes resId: Int) = "android.resource://$packageName/$resId"
+
+    companion object {
+        private const val STANDARD_STORY_DIALOG_TAG = "STANDARD_STORY_DIALOG_TAG"
+        private const val EXO_STORY_DIALOG_TAG = "EXO_STORY_DIALOG_TAG"
     }
 }

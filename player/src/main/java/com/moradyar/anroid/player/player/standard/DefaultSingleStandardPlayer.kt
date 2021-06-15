@@ -1,22 +1,30 @@
 package com.moradyar.anroid.player.player.standard
 
+import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.view.SurfaceHolder
+import android.view.SurfaceView
 import com.moradyar.anroid.player.common.Playable
 import com.moradyar.anroid.player.common.PlayerState
 import com.moradyar.anroid.player.errors.PlayerError
 
-class DefaultSingleStandardPlayer : BaseStandardPlayer(),
+class DefaultSingleStandardPlayer(private val context: Context) : BaseStandardPlayer(),
     SingleStandardPlayer,
     MediaPlayer.OnSeekCompleteListener, MediaPlayer.OnBufferingUpdateListener,
     MediaPlayer.OnErrorListener, MediaPlayer.OnInfoListener, MediaPlayer.OnPreparedListener,
-    MediaPlayer.OnCompletionListener {
+    MediaPlayer.OnCompletionListener, MediaPlayer.OnVideoSizeChangedListener {
 
     override var currentPlayable: Playable? = null
+    private var surfaceView: SurfaceView? = null
 
-    override fun play(playable: Playable, surfaceHolder: SurfaceHolder?) {
+    override fun play(
+        playable: Playable,
+        surfaceView: SurfaceView?,
+        surfaceHolder: SurfaceHolder?
+    ) {
         currentPlayable = playable
+        this.surfaceView = surfaceView
         player = MediaPlayer().apply {
             playerStateListeners.forEach { it.get()?.onEvent(PlayerState.Idle, playable) }
             setAudioAttributes(
@@ -29,9 +37,10 @@ class DefaultSingleStandardPlayer : BaseStandardPlayer(),
             setOnBufferingUpdateListener(this@DefaultSingleStandardPlayer)
             setOnErrorListener(this@DefaultSingleStandardPlayer)
             setOnInfoListener(this@DefaultSingleStandardPlayer)
-            setDataSource(playable.uri)
+            setMediaSource(context, this, playable)
             setOnPreparedListener(this@DefaultSingleStandardPlayer)
             setOnCompletionListener(this@DefaultSingleStandardPlayer)
+            setOnVideoSizeChangedListener(this@DefaultSingleStandardPlayer)
             setDisplay(surfaceHolder)
             prepareAsync()
         }
@@ -74,6 +83,12 @@ class DefaultSingleStandardPlayer : BaseStandardPlayer(),
     override fun onCompletion(mp: MediaPlayer?) {
         currentPlayable?.let { playable ->
             playerStateListeners.forEach { it.get()?.onEvent(PlayerState.Ended, playable) }
+        }
+    }
+
+    override fun onVideoSizeChanged(mp: MediaPlayer?, width: Int, height: Int) {
+        surfaceView?.let {
+            handleAspectRatio(it, width.toFloat(), height.toFloat())
         }
     }
 }

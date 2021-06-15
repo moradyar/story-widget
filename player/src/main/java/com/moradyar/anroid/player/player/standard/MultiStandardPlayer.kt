@@ -1,13 +1,19 @@
 package com.moradyar.anroid.player.player.standard
 
+import android.content.Context
 import android.view.SurfaceHolder
+import android.view.SurfaceView
 import com.moradyar.anroid.player.common.Playable
 import com.moradyar.anroid.player.common.RepeatModeEnum
 import com.moradyar.anroid.player.listeners.TransitionListener
 
 interface MultiStandardPlayer : StandardPlayer {
 
-    fun play(playableList: Array<Playable>, surfaceHolder: SurfaceHolder? = null)
+    fun play(
+        playableList: Array<Playable>,
+        surfaceView: SurfaceView? = null,
+        surfaceHolder: SurfaceHolder? = null
+    )
 
     fun hasPrevious(): Boolean
 
@@ -30,8 +36,8 @@ interface MultiStandardPlayer : StandardPlayer {
     class Factory {
 
         companion object {
-            fun create(): MultiStandardPlayer {
-                return DefaultMultiStandardPlayer()
+            fun create(context: Context): MultiStandardPlayer {
+                return DefaultMultiStandardPlayer(context)
             }
         }
     }

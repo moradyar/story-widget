@@ -33,7 +33,7 @@ class StandardStoryWidget : ConstraintLayout, TransitionListener, StateListener,
 
     init {
         addView(binding.root)
-        player = MultiStandardPlayer.Factory.create()
+        player = MultiStandardPlayer.Factory.create(context)
         binding.playerView.setOnTouchListener { _, event ->
             when (event.action) {
                 ACTION_UP -> {
@@ -69,7 +69,7 @@ class StandardStoryWidget : ConstraintLayout, TransitionListener, StateListener,
 
     fun play(playableList: Array<Playable>) {
         binding.playerView.holder.addCallback(SurfaceCreatedCallback {
-            player.play(playableList, it)
+            player.play(playableList, binding.playerView, it)
         })
     }
 

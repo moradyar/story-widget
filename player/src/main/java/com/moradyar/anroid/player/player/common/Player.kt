@@ -1,6 +1,5 @@
 package com.moradyar.anroid.player.player.common
 
-import com.google.android.exoplayer2.ui.PlayerView
 import com.moradyar.anroid.player.listeners.ErrorListener
 import com.moradyar.anroid.player.listeners.ProgressListener
 import com.moradyar.anroid.player.listeners.SeekListener

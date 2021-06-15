@@ -1,8 +1,10 @@
 package com.moradyar.anroid.player.player.standard
 
+import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.view.SurfaceHolder
+import android.view.SurfaceView
 import com.moradyar.anroid.player.common.Playable
 import com.moradyar.anroid.player.common.PlayerState
 import com.moradyar.anroid.player.common.RepeatModeEnum
@@ -11,11 +13,11 @@ import com.moradyar.anroid.player.errors.PlayerError
 import com.moradyar.anroid.player.listeners.TransitionListener
 import java.lang.ref.WeakReference
 
-class DefaultMultiStandardPlayer : BaseStandardPlayer(),
+class DefaultMultiStandardPlayer(private val context: Context) : BaseStandardPlayer(),
     MultiStandardPlayer,
     MediaPlayer.OnSeekCompleteListener, MediaPlayer.OnBufferingUpdateListener,
     MediaPlayer.OnErrorListener, MediaPlayer.OnInfoListener, MediaPlayer.OnPreparedListener,
-    MediaPlayer.OnCompletionListener {
+    MediaPlayer.OnCompletionListener, MediaPlayer.OnVideoSizeChangedListener {
 
     private val transitionListeners: MutableList<WeakReference<TransitionListener>> =
         mutableListOf()
@@ -24,16 +26,25 @@ class DefaultMultiStandardPlayer : BaseStandardPlayer(),
     private var repeatMode: RepeatModeEnum = RepeatModeEnum.ALL
     private var shuffleMode: Boolean = false
     private var surfaceHolder: SurfaceHolder? = null
+    private var surfaceView: SurfaceView? = null
 
-    override fun play(playableList: Array<Playable>, surfaceHolder: SurfaceHolder?) {
+    override fun play(
+        playableList: Array<Playable>,
+        surfaceView: SurfaceView?,
+        surfaceHolder: SurfaceHolder?
+    ) {
         this.surfaceHolder = surfaceHolder
+        this.surfaceView = surfaceView
         initPlayableList(playableList)
         playableList.getOrNull(currentIndex)?.let { playable ->
             play(playable, surfaceHolder)
         }
     }
 
-    private fun play(playable: Playable, surfaceHolder: SurfaceHolder?) {
+    private fun play(
+        playable: Playable,
+        surfaceHolder: SurfaceHolder?
+    ) {
         player = MediaPlayer().apply {
             playerStateListeners.forEach { it.get()?.onEvent(PlayerState.Idle, playable) }
             setAudioAttributes(
@@ -46,9 +57,10 @@ class DefaultMultiStandardPlayer : BaseStandardPlayer(),
             setOnBufferingUpdateListener(this@DefaultMultiStandardPlayer)
             setOnErrorListener(this@DefaultMultiStandardPlayer)
             setOnInfoListener(this@DefaultMultiStandardPlayer)
-            setDataSource(playable.uri)
+            setMediaSource(context, this, playable)
             setOnPreparedListener(this@DefaultMultiStandardPlayer)
             setOnCompletionListener(this@DefaultMultiStandardPlayer)
+            setOnVideoSizeChangedListener(this@DefaultMultiStandardPlayer)
             surfaceHolder?.let { setDisplay(it) }
             prepareAsync()
         }
@@ -172,6 +184,12 @@ class DefaultMultiStandardPlayer : BaseStandardPlayer(),
     private fun handleCallingStateListeners(playable: Playable) {
         transitionListeners.forEach {
             it.get()?.onTransition(Transition.Standard.Changed(playable))
+        }
+    }
+
+    override fun onVideoSizeChanged(mp: MediaPlayer?, width: Int, height: Int) {
+        surfaceView?.let {
+            handleAspectRatio(it, width.toFloat(), height.toFloat())
         }
     }
 }
